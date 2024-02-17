@@ -1,0 +1,10 @@
+{
+    "The rally concludes with an unreturnable spike.": 0,
+    "The rally concludes with the ball going out of bounds after the opponent's touch." : 1,
+    "The rally concludes with the opponent's successful block, and the ball drops on our side of the court." : 2,
+    "The rally concludes with the opponent's block failing, and the ball drops on their side of the court.": 3,
+    "The rally concludes with the opponent's block failing, and the ball landing out of bounds." : 4,
+    "The rally concludes with a spike fault." : 5,
+    "The rally concludes with a service fault." : 6,
+    "The rally concludes with a service ace." : 7
+}
