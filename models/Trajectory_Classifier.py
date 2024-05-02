@@ -18,43 +18,15 @@ class Trajectory_Classifier(nn.Module):
             nn.LayerNorm(hidden_d),
             nn.Linear(hidden_d,n_classes)
         )   
-        self.max_length = max_len
        
-    def forward(self, positions):
-        ## new
-        # self.max_squ_size = 600
-        
-        
-        # hidden_embed_dim = 10    ## feat dim -> 10
-        # input : trajs (600, 4)
-        # cls token : (1, hidden_embed_dim)'
-
-        # step
-        # trajs (600, 4) -> ???? -> trajs_2 (600, hed)
-        # trajs_2 (600, hed) + cls token -> trajs_3  (601, hed)
-        # + PE  (601, hed) -> encoder -> MLP -> pred label 
-
-        src = self.linear_mapping(positions)  ##(B,max_len, d_model) -> (B,max_len, hidden_d)
-        # print("\nself mapping",src.shape)
+    def forward(self, positions): 
+        src = self.linear_mapping(positions)  #(B,max_len, d_model) -> (B,max_len, hidden_d)
         B, L, D = src.shape
-        cls_token = self.class_token.expand(B, -1, -1) ##(B,1, hidden_d) -> (B, 1, hidden_d)
-        # print("\nclass token",cls_token.shape) 
-        
-        src = torch.cat((cls_token, src), dim=1) ##(B,max_len+1, hidden_d)
-        # print("\nsrc + class token",src.shape)
-        src = src + self.pos_embedding ##(B,max_len+1, hidden_d)
-        # print("\nsrc + pos embedding",src.shape) 
-        src = self.dropout(src)
-        
-        src = self.encoder(src) ##(B,max_len+1, hidden_d)
-        # print("\nencoder ",src.shape)
-        src = self.norm(src) ##(B,max_len+1, hidden_d)
-        # print("\nnorm",src.shape)
-        cls_token = src[:, 0] ##(B, hidden_d)
-        # print("\ncls_token",cls_token.shape)
-        # print("\ncls_token",cls_token)
-        
+        cls_token = self.class_token.expand(B, -1, -1) #(B,1, hidden_d)      
+        src = torch.cat((cls_token, src), dim=1) #(B,max_len+1, hidden_d)
+        src = src + self.pos_embedding #(B,max_len+1, hidden_d)
+        src = self.encoder(src) #(B,max_len+1, hidden_d)
+        cls_token = src[:, 0] #(B, hidden_d)
         output = self.mlp_head(cls_token)   #(B, n_classes)
-        # print("\noutput",output.shape)
-        # print("\noutput",output)
+        
         return output
