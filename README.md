@@ -1,4 +1,4 @@
-# Project Title
+# Trajectory Classifier
 
 A LSTM-based trajectory classifier.
 
