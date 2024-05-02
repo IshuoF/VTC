@@ -40,7 +40,6 @@ def preprocessing(folder_path, max_len):
                         
                         frame_pos3d = json_data.get("frame_pos3d", {})
                         
-                        
                         interpolated_traj,time = interpolate_data(frame_pos3d, max_len)
                         velocities = calculate_velocity(interpolated_traj, time, max_len)                     
                         timestamp = np.arange(0, max_len)/60
@@ -49,7 +48,6 @@ def preprocessing(folder_path, max_len):
                     except Exception as e:
                         print(e)
                         print(f'{file} json file open failed')
-                        wait = input("PRESS ENTER TO CONTINUE.")
                         continue
     return data
     
@@ -70,9 +68,7 @@ def calculate_velocity(interpolated_traj,time, max_len):
 def interpolate_data(pos3d, max_len):
     min_frame_id = min(pos3d.keys(), key=(lambda k: int(k)))
     max_frame_id = max(pos3d.keys(), key=(lambda k: int(k)))
-    
-    # print(f"min_frame_id: {min_frame_id}, max_frame_id: {max_frame_id}, frame_len: {len(pos3d)}")
-    
+
     
     if int(max_frame_id) > max_len:
         start_frame_id = int(max_frame_id) - max_len
@@ -86,9 +82,6 @@ def interpolate_data(pos3d, max_len):
     if int(max_frame_id) < max_len:
         start_frame_id = min_frame_id
     
-        # print(f" max frame id < max len  start_frame_id: {start_frame_id}")
-    # wait = input("PRESS ENTER TO CONTINUE.")  
-    # print("find start_frame_id pass")
     sorted_keys = sorted(pos3d.keys(), key=lambda x: int(x))
     original_traj = np.array([pos3d[key] for key in sorted_keys])
     # print(f' original len {len(original_traj)}')
@@ -96,9 +89,7 @@ def interpolate_data(pos3d, max_len):
     
     original_traj_extract = {frame_id: pos3d[str(frame_id)] for frame_id in sorted_keys if int(frame_id) >= int(start_frame_id)}
     original_traj_extract = np.array([original_traj_extract[key] for key in original_traj_extract.keys()])
-    # print(f' extract key {original_traj_extract.keys()}')
-    # print(f' extract value {original_traj_extract.values()}')
-    # print(f' extract len {len(original_traj_extract)}')
+ 
     
     # print(original_traj_extract[0][0])
     idx = np.linspace(0, len(original_traj_extract)-1, max_len)
@@ -106,56 +97,11 @@ def interpolate_data(pos3d, max_len):
     
     for i in range(3):
         interpolated_traj[:, i] = np.interp(idx, np.arange(len(original_traj_extract)), original_traj_extract[:, i])
-    # print("interpolated_traj pass")
-    # print(interpolated_traj)
-    # print(interpolated_traj.shape)
+  
     times = (int(max_frame_id) - int(start_frame_id))/60
-    # print ("interpolate_data pass")
+  
     return interpolated_traj, times
-    # x = interpolated_traj[:, 0]
-    # y = interpolated_traj[:, 1]
-    # z = interpolated_traj[:, 2]
-    
-    # ox = original_traj[:, 0]
-    # oy = original_traj[:, 1]
-    # oz = original_traj[:, 2]
-    
-    # fig = plt.figure()
-    # ax = fig.add_subplot(projection='3d')
-    # ax.set_xlim3d(left=0, right=9)
-    # ax.set_ylim3d(bottom=-1, top=19)
-    # ax.set_zlim3d(bottom=0, top=5)
-    # draw_volleyball_court(ax)
-    # ax.scatter(x, y, z, c='r')
-    # ax.scatter(ox, oy, oz, c='b')
-    # ax.view_init(elev=5, azim=195)
 
-    # plt.show()
-    
-
-
-def draw_volleyball_court(ax):
-    points = np.array([
-        [0, 0, 0], [9, 0, 0], [0, 6, 0], [9, 6, 0], [0, 9, 0],
-        [9, 9, 0], [0, 12, 0], [9, 12, 0], [0, 18, 0], [9, 18, 0]
-    ])
-    courtedge = [2, 0, 1, 3, 2, 4, 5, 3, 5, 7, 6, 4, 6, 8, 9, 7]
-    curves = points[courtedge]
-
-    netpoints = np.array([
-        [0, 9, 0], [0, 9, 1.24], [0, 9, 2.24], [9, 9, 0], [9, 9, 1.24], [9, 9, 2.24]])
-    netedge = [0, 1, 2, 5, 4, 1, 4, 3]
-    netcurves = netpoints[netedge]
-
-    court = points.T
-    courtX, courtY, courtZ = court
-    # plot 3D court reference points
-
-    ax.scatter(courtX, courtY, courtZ, c='black', marker='o', s=1)
-    ax.plot(curves[:, 0], curves[:, 1], c='k',
-            linewidth=2, alpha=0.5)  # plot 3D court edges
-    ax.plot(netcurves[:, 0], netcurves[:, 1], netcurves[:, 2],
-            c='k', linewidth=2, alpha=0.5)  # plot 3D net edges
 
 def save_data(data, file_path):
     print("Data Length :" + str(len(data)))
@@ -163,8 +109,8 @@ def save_data(data, file_path):
         pickle.dump(data, f)
         
 def main():
-    types = ["train", "test", "valid"]
-    max_length = [200,300,400,500,600,700,800]
+    types = [ "train"]
+    max_length = [400]
     aug_or_not = [""]
     # types_num = 0
     # max_length_num = 1
@@ -183,18 +129,15 @@ def main():
                 # print(len(result))
                 save_data(result, output_file)
                 print("Data saved")
-    
-    
+
     Isfine = False
-    
-    
+
     for aug in range(len(aug_or_not)):
         for types_num in range(len(types)):
             for i in range(len(max_length)):
             
                 output_file = f'./dataset/{types[types_num]}/{types[types_num]}_last{max_length[i]}_d.pkl'
-                
-                
+
                 print(f"Start checking {types[types_num]} {aug_or_not[aug]}  length {max_length[i]} data \n")
                 with open(output_file, 'rb') as f:
                 
