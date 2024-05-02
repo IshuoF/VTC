@@ -2,28 +2,23 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from torch.utils.data import DataLoader,ConcatDataset
+from torch.utils.data import DataLoader
 
-import os
-import argparse
-import numpy as np
-import pandas as pd
-import seaborn as sns
 from tqdm import tqdm
-from datetime import datetime
-from matplotlib import pyplot as plt
+
+from models.Trajectory_Classifier import Trajectory_Classifier
 from VolleyballDataset import VolleyballDataset
 from sklearn.metrics import confusion_matrix, classification_report
 
 
 
 def test():
-    max_length = 1000
-    testdataset_path = f"./dataset/test/test_last{max_length}.pkl"
+    max_length = 400
+    testdataset_path = f"./dataset/test/test_last{max_length}_d.pkl"
     test_set = VolleyballDataset(testdataset_path, None)
     test_loader = DataLoader(test_set, batch_size=32, shuffle=False, num_workers=4)
     
-    pretrained_model_path = f"./saved_models/ml{max_length}_bs32_ep100_lr0.0001_dataset4922_layer3/classifier_best.pth"
+    pretrained_model_path = f"./saved_models/ml400_bs32_ep25_lr0.0001_test/classifier_best.pth"
     
     
     class_weights = [0] * 8
@@ -44,13 +39,15 @@ def test():
     
         
     # Define the model
-    d_model = 3
-    nhead = 3
-    dim_feedforward = 512
-    num_layers = 3
-    class_num = 8
-    encoder = TrajEncoder(num_layers, d_model, nhead, dim_feedforward)
-    model = Trajectory_Classifier(encoder, d_model,class_num,max_length)
+   
+    model = Trajectory_Classifier(d_model=3,
+                                  dim_feedforward=512,
+                                  n_layers=3,
+                                  nhead=3,
+                                  hidden_d=6,
+                                  n_classes = 8,
+                                  max_len=max_length,
+                                  dropout=0.1)
     model.load_state_dict(torch.load(pretrained_model_path))
     model.to(device)
     model.eval()
@@ -71,3 +68,7 @@ def test():
                 
     classification_rep = classification_report(all_labels, all_predicted)  
     print('Classification Report:\n', classification_rep)   
+    
+    
+if __name__ == "__main__":
+    test()

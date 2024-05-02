@@ -1,19 +1,16 @@
+import os
 import torch
+import argparse
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from torch.utils.data import DataLoader,ConcatDataset
-from models.Trajectory_Classifier import Trajectory_Classifier
-import os
-import argparse
-import numpy as np
-import pandas as pd
-import seaborn as sns
+
 from tqdm import tqdm
 from datetime import datetime
 from matplotlib import pyplot as plt
+from torch.utils.data import DataLoader
 from VolleyballDataset import VolleyballDataset
-from sklearn.metrics import confusion_matrix, classification_report
+from models.Trajectory_Classifier import Trajectory_Classifier
 
 
 def main():
@@ -81,14 +78,13 @@ def main():
     class_num = 8
     
     model = Trajectory_Classifier(d_model=3,
-                                  dim_feedforward=512,
-                                  n_layers=3,
+                                  dim_feedforward=64,
+                                  n_layers=1,
                                   nhead=3,
                                   hidden_d=6,
                                   n_classes = 8,
                                   max_len=max_length,
                                   dropout=0.1)
-    # model.load_state_dict(torch.load(pretrained_model_path))
     model.to(device)
 
     # Define the optimizer and loss function
@@ -150,13 +146,13 @@ def main():
                 labels = batch["label"]
                 positions = batch["position"] 
                 labels, positions = labels.to(device), positions.to(device)
-                optimizer.zero_grad()
                 output = model(positions)
                 loss = criterion(output, labels)
                 total_valid_loss += loss.item()
-                # print("output data",output.data)
+                
+                print("output data",output.data)
                 _, predicted = torch.max(output.data, 1)
-                print("predicted ",predicted)
+                # print("predicted ",predicted)
                 total += labels.size(0)
                 total_correct += (predicted == labels).sum().item()
                 
@@ -196,23 +192,6 @@ def main():
     plt.title('Training Loss')
     loss_save_path = os.path.join(save_dir, 'training_loss_plot.png').replace("\\", "/")
     plt.savefig(loss_save_path)
-    
-    # Plot the accuracy matrix
-    # conf_matrix = confusion_matrix(all_labels, all_predicted)
-    # plt.figure(figsize=(10, 8))
-    # sns.heatmap(conf_matrix, annot=True, fmt='g', cmap='Blues', xticklabels=range(class_num), yticklabels=range(class_num))
-    # plt.xlabel('Predicted')
-    # plt.ylabel('True')
-    # plt.title('Confusion Matrix')
-    # acc_save_path = os.path.join(save_dir, 'accuracy_heatmap.png').replace("\\", "/")
-    # plt.savefig(acc_save_path)
-    # plt.savefig(acc_save_path)
-
-    # Print and Save the classification report
-    # classification_report_result = classification_report(all_labels, all_predicted,output_dict=True)
-    # crr_df = pd.DataFrame(classification_report_result).transpose()
-    # crr_df.to_csv(os.path.join(save_dir, 'classification_report.csv').replace("\\", "/"), index=True)
-    # print("classificaiton report",classification_report(all_labels, all_predicted))
     
     del train_loader, valid_loader, model, optimizer, criterion
     torch.cuda.empty_cache()
