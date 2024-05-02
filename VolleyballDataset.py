@@ -13,12 +13,14 @@ class VolleyballDataset(Dataset):
         return len(self.data)
     
     def __getitem__(self, idx):
-        label, position = self.data[idx]
+        label, position, velocities, timestamp = self.data[idx]
         
         label = torch.as_tensor(label, dtype=torch.long)
         position = torch.as_tensor(position, dtype=torch.float32)
+        velocity= torch.as_tensor(velocities, dtype=torch.float32)
+        timestamp = torch.as_tensor(timestamp, dtype=torch.float32)
         
-        sample = {"label": label, "position": position}
+        sample = {"label": label, "position": position, "v": velocity, "t": timestamp}
         
         if self.transform:
             position = self.transform(sample)
