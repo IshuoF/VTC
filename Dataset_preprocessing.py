@@ -66,6 +66,8 @@ def calculate_velocity(interpolated_traj,time, max_len):
      
         
 def interpolate_data(pos3d, max_len):
+    start_frame_id = 0
+    
     min_frame_id = min(pos3d.keys(), key=(lambda k: int(k)))
     max_frame_id = max(pos3d.keys(), key=(lambda k: int(k)))
 
@@ -79,17 +81,19 @@ def interpolate_data(pos3d, max_len):
             
         # print(f" max frame id > max len  start_frame_id: {start_frame_id}")
     
-    if int(max_frame_id) < max_len:
+    if int(max_frame_id) <= max_len:
         start_frame_id = min_frame_id
     
+    print(type(start_frame_id))
     sorted_keys = sorted(pos3d.keys(), key=lambda x: int(x))
     original_traj = np.array([pos3d[key] for key in sorted_keys])
     # print(f' original len {len(original_traj)}')
     
+    print(f"start_frame_id: {start_frame_id} max_frame_id: {max_frame_id}")
     
     original_traj_extract = {frame_id: pos3d[str(frame_id)] for frame_id in sorted_keys if int(frame_id) >= int(start_frame_id)}
     original_traj_extract = np.array([original_traj_extract[key] for key in original_traj_extract.keys()])
- 
+    
     
     # print(original_traj_extract[0][0])
     idx = np.linspace(0, len(original_traj_extract)-1, max_len)
@@ -152,4 +156,12 @@ def main():
                     print("Data check is fine")
 
 if __name__ == "__main__":
-    main()
+    # main()
+    json_file = "./data/train/trajectory/0204_woman/HDR80_A_Live_20230204_151007_000.json"
+    with open(json_file) as f:
+        data = json.load(f)
+
+    frame_pos3d = data.get("frame_pos3d", {})
+
+    interpolated_traj,_ = interpolate_data(frame_pos3d, 400)
+    print(interpolated_traj)
